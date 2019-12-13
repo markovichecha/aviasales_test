@@ -4,7 +4,7 @@ package parsers
 type Hotel struct {
 	Name        string   `xml:"name" csv:"hotel_translated_name" db:"name"`
 	Description string   `xml:"descriptions>en" csv:"overview" db:"description"`
-	Address     string   `xml:"string" csv:"addressline1" db:"address"`
+	Address     string   `xml:"address" csv:"addressline1" db:"address"`
 	City        string   `xml:"city>en" csv:"city" db:"city"`
 	Country     string   `xml:"country>en" csv:"country" db:"country"`
 	CountryCode string   `xml:"countrytwocharcode" csv:"countryisocode" db:"country_iso"`

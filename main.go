@@ -87,4 +87,5 @@ func main() {
 	wg.Wait()
 	close(hotelChan)
 	<-stop
+	fmt.Println("Done!")
 }
