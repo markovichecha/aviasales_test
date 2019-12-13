@@ -1,14 +1,23 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	_ "github.com/jackc/pgx/stdlib"
+	"github.com/markovichecha/aviasales_test/config"
+	"github.com/markovichecha/aviasales_test/parsers"
+	"github.com/markovichecha/aviasales_test/storage"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"sync"
+)
 
-	"github.com/markovichecha/aviasales_test/parsers"
+var (
+	configFile  string
+	workingDir  string
+	workingFile string
 )
 
 func parseDump(fullPath string, wg *sync.WaitGroup, hotelChan chan parsers.Hotel) {
@@ -28,33 +37,52 @@ func parseDump(fullPath string, wg *sync.WaitGroup, hotelChan chan parsers.Hotel
 	defer wg.Done()
 }
 
-func storeData(hotelChan chan parsers.Hotel, stop chan bool) {
-	var hotels []parsers.Hotel
+func storeData(dbs *storage.DBstorage, hotelChan chan parsers.Hotel, stop chan bool) {
+	var wg sync.WaitGroup
 	for {
 		if hotel, ok := <-hotelChan; ok {
-			hotels = append(hotels, hotel)
+			wg.Add(1)
+			go dbs.StoreHotel(hotel, &wg)
 		} else {
 			break
 		}
 	}
-	fmt.Printf("%v", hotels)
+	wg.Wait()
 	stop <- true
 }
 
+func init() {
+	flag.StringVar(&configFile, "config", "config.yml", "path to your .yml config")
+	flag.StringVar(&workingDir, "dir", "", "path to a dumps folder")
+	flag.StringVar(&configFile, "file", "", "path to your dump")
+	flag.StringVar(&configFile, "c", "config.yml", "path to your .yml config")
+	flag.StringVar(&workingDir, "d", "", "path to a dumps folder")
+	flag.StringVar(&configFile, "f", "", "path to your dump")
+}
+
 func main() {
-	workingDir := "./dumps/"
-	files, err := ioutil.ReadDir(workingDir)
-	if err != nil {
-		log.Fatal(err)
-	}
+	flag.Parse()
 	var wg sync.WaitGroup
 	hotelChan := make(chan parsers.Hotel)
+	cfg := config.NewConfig(configFile)
+	dbs := storage.NewDbStorage(cfg)
 	stop := make(chan bool)
-	go storeData(hotelChan, stop)
-	for _, file := range files {
+	go storeData(dbs, hotelChan, stop)
+	if workingDir != "" {
+		files, err := ioutil.ReadDir(workingDir)
+		if err != nil {
+			log.Fatal(err)
+		}
+		for _, file := range files {
+			wg.Add(1)
+			path := fmt.Sprintf("%s/%s", workingDir, file.Name())
+			go parseDump(path, &wg, hotelChan)
+		}
+	} else if workingFile != "" {
 		wg.Add(1)
-		path := workingDir + file.Name()
-		go parseDump(path, &wg, hotelChan)
+		go parseDump(workingFile, &wg, hotelChan)
+	} else {
+		log.Fatal("There's nothing to dump")
 	}
 	wg.Wait()
 	close(hotelChan)
