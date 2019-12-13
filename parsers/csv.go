@@ -13,17 +13,16 @@ import (
 
 var reg = regexp.MustCompile(`(\w*){(\d*),(\d*)}`)
 
-func fieldToIndex(fields []string) map[int]reflect.StructField {
+func fieldToIndex(csvFields []string) map[int]reflect.StructField {
 	t := reflect.TypeOf(Hotel{})
-	hf := make(map[string]reflect.StructField)
-	fMap := make(map[int]reflect.StructField)
+	hFields := make(map[string]reflect.StructField)
 	for i := 0; i < t.NumField(); i++ {
-		f := t.Field(i)
-		if f.Tag != "" {
-			tag := f.Tag.Get("csv")
-			if f.Type.Kind() == reflect.Slice {
-				match := reg.FindStringSubmatch(tag)
-				if len(match) != 0 {
+		hField := t.Field(i)
+		if csvTag := hField.Tag.Get("csv"); csvTag != "" {
+			switch hField.Type.Kind() {
+			case reflect.Slice:
+				match := reg.FindStringSubmatch(csvTag)
+				if len(match) == 4 {
 					from, err := strconv.ParseInt(match[2], 10, 32)
 					if err != nil {
 						log.Fatal(err)
@@ -33,16 +32,18 @@ func fieldToIndex(fields []string) map[int]reflect.StructField {
 						log.Fatal(err)
 					}
 					for a := from; a <= to; a++ {
-						tag := fmt.Sprintf("%s%d", match[1], a)
-						hf[tag] = f
+						baseTag := fmt.Sprintf("%s%d", match[1], a)
+						hFields[baseTag] = hField
 					}
 				}
+			default:
+				hFields[csvTag] = hField
 			}
-			hf[tag] = f
 		}
 	}
-	for i, f := range fields {
-		if ftype, ok := hf[f]; ok {
+	fMap := make(map[int]reflect.StructField)
+	for i, csvField := range csvFields {
+		if ftype, ok := hFields[csvField]; ok {
 			fMap[i] = ftype
 		}
 	}
