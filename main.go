@@ -47,13 +47,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	var wg *sync.WaitGroup
-	var hotelChan chan parsers.Hotel
-	var stop chan bool
+	var wg sync.WaitGroup
+	hotelChan := make(chan parsers.Hotel)
+	stop := make(chan bool)
+	go storeData(hotelChan, stop)
 	for _, file := range files {
 		wg.Add(1)
 		path := workingDir + file.Name()
-		go parseDump(path, wg, hotelChan)
+		go parseDump(path, &wg, hotelChan)
 	}
 	wg.Wait()
 	close(hotelChan)

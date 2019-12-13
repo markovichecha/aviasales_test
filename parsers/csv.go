@@ -61,7 +61,6 @@ func CSVParse(file *os.File, hotels chan Hotel) {
 		return
 	}
 	fMap := fieldToIndex(fields)
-	fmt.Printf("%v", fMap)
 
 	for {
 		var hotel Hotel

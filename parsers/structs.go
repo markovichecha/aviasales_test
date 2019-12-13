@@ -12,10 +12,17 @@ type Hotel struct {
 	Latitude    float64  `xml:"latitude" csv:"latitude"`
 	Stars       uint8    `xml:"stars" csv:"star_rating"`
 	Images      []string `xml:"photos>photo>url" csv:"photo{1,5}"`
+	Rating		float64  `csv:"rating_average"`
+	CheckIn 	string	`csv:"checkin"`
+	CheckOut	string `csv:"checkout"`
 }
 
 type jsonHotelImages struct {
 	URL string `json:"url"`
+}
+
+type jsonHotelRating struct {
+	Total float64 `json:"total"`
 }
 
 type jsonHotelInner struct {
@@ -32,7 +39,10 @@ type jsonHotel struct {
 	Longitude       float64           `json:"longitude"`
 	Latitude        float64           `json:"latitude"`
 	Stars           uint8             `json:"star_rating"`
+	CheckIn string `json:"check_in_time"`
+	CheckOut string `json:"check_out_time"`
 	JSONHotelImages []jsonHotelImages `json:"images"`
+	JSONHotelRating jsonHotelRating   `json:"rating"`
 }
 
 func (jh jsonHotel) getImages() (images []string) {
@@ -60,5 +70,8 @@ func (jh jsonHotel) ToHotel() Hotel {
 		Latitude:    jh.Latitude,
 		Stars:       jh.convertStars(),
 		Images:      jh.getImages(),
+		Rating:	     jh.JSONHotelRating.Total,
+		CheckIn:	 jh.CheckIn,
+		CheckOut:	jh.CheckOut,
 	}
 }
