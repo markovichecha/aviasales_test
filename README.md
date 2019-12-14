@@ -1,14 +1,16 @@
 # aviasales_test
 ## Installation
-`$ go get github.com/markovichecha/aviasales_test`
+`$ git clone https://github.com/markovichecha/aviasales_test`
 
-`$  go install github.com/markovichecha/aviasales_test`
+`$ cd aviasales_test`
 
-## PostgreSQL
+`$ go build`
+
+### PostgreSQL
 Run `$ sudo docker-compose up -d` to boot up a dockerized  PostgreSQL.
 
 ## Command Line Interface
-`$ go run github.com/markovichecha/aviasales_test -c config.yml  -d dump`
+`$ ./aviasales_test -c config.yml  -d dump`
 
 -c --config:	Path to the .yml config file
 
