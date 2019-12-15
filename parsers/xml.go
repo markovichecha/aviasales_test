@@ -5,11 +5,10 @@ import (
 
 	"io"
 	"log"
-	"os"
 )
 
 // XMLParse converts the XML dump into a Hotel structure
-func XMLParse(file *os.File, hotels chan Hotel) {
+func XMLParse(file io.Reader, hotels chan Hotel) {
 	dec := xml.NewDecoder(file)
 
 	for {

@@ -1,0 +1,35 @@
+<hotel>
+ <id>1</id>
+ <name><![CDATA[Little Italy]]></name>
+ <address><![CDATA[Pushkin str. 1]]></address>
+ <city>
+  <en><![CDATA[Moscow]]></en>
+ </city>
+ <country>
+  <en><![CDATA[Russia]]></en>
+ </country>
+ <countrytwocharcode>RU</countrytwocharcode>
+ <longitude>12.3456789</longitude>
+ <latitude>98.7654321</latitude>
+ <stars>5</stars>
+ <photos>
+  <photo>
+   <url><![CDATA[url_1]]></url>
+  </photo>
+  <photo>
+   <url><![CDATA[url_2]]></url>
+  </photo>
+  <photo>
+   <url><![CDATA[url_3]]></url>
+  </photo>
+  <photo>
+   <url><![CDATA[url_4]]></url>
+  </photo>
+  <photo>
+   <url><![CDATA[url_5]]></url>
+  </photo>
+ </photos>
+ <descriptions>
+  <en><![CDATA[Looking Good!]]></en>
+ </descriptions>
+</hotel>

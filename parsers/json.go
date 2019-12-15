@@ -3,8 +3,8 @@ package parsers
 import (
 	"bufio"
 	"encoding/json"
+	"io"
 	"log"
-	"os"
 )
 
 type jsonHotelImages struct {
@@ -29,8 +29,6 @@ type jsonHotel struct {
 	Longitude       float64           `json:"longitude"`
 	Latitude        float64           `json:"latitude"`
 	StarRating      uint8             `json:"star_rating"`
-	CheckIn         string            `json:"check_in_time"`
-	CheckOut        string            `json:"check_out_time"`
 	JSONHotelImages []jsonHotelImages `json:"images"`
 	JSONHotelRating jsonHotelRating   `json:"rating"`
 }
@@ -39,11 +37,6 @@ func (jh jsonHotel) getImages() (images []string) {
 	for _, v := range jh.JSONHotelImages {
 		images = append(images, v.URL)
 	}
-	return
-}
-
-func (jh jsonHotel) convertStars() (stars uint8) {
-	stars = uint8(jh.StarRating / 10)
 	return
 }
 
@@ -58,14 +51,14 @@ func (jh jsonHotel) ToHotel() Hotel {
 		CountryCode: jh.CountryCode,
 		Longitude:   jh.Longitude,
 		Latitude:    jh.Latitude,
-		StarRating:  jh.convertStars(),
+		StarRating:  jh.StarRating,
 		Images:      jh.getImages(),
 		Rating:      jh.JSONHotelRating.Total,
 	}
 }
 
 // JSONParse converts the JSON dump into a Hotel structure
-func JSONParse(file *os.File, hotels chan Hotel) {
+func JSONParse(file io.Reader, hotels chan Hotel) {
 	scanner := bufio.NewScanner(file)
 
 	for scanner.Scan() {

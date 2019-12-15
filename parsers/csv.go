@@ -5,43 +5,55 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
 	"reflect"
 	"regexp"
 	"strconv"
 )
 
-var reg = regexp.MustCompile(`(\w*){(\d*),(\d*)}`)
+var rangeTagReg = regexp.MustCompile(`(\w*){(\d*),(\d*)}`)
 
-func fieldToIndex(csvFields []string) map[int]reflect.StructField {
+type fieldInfo struct {
+	name string
+	kind reflect.Kind
+}
+
+func fieldToIndex(csvFields []string) map[int]fieldInfo {
 	t := reflect.TypeOf(Hotel{})
-	hFields := make(map[string]reflect.StructField)
+	hFields := make(map[string]fieldInfo)
 	for i := 0; i < t.NumField(); i++ {
-		hField := t.Field(i)
-		if csvTag := hField.Tag.Get("csv"); csvTag != "" {
-			switch hField.Type.Kind() {
+		field := t.Field(i)
+		fi := fieldInfo{field.Name, field.Type.Kind()}
+		if tag := field.Tag.Get("csv"); tag != "" {
+			switch field.Type.Kind() {
 			case reflect.Slice:
-				match := reg.FindStringSubmatch(csvTag)
-				if len(match) == 4 {
-					from, err := strconv.ParseInt(match[2], 10, 32)
-					if err != nil {
-						log.Fatal(err)
-					}
-					to, err := strconv.ParseInt(match[3], 10, 32)
-					if err != nil {
-						log.Fatal(err)
-					}
-					for a := from; a <= to; a++ {
-						baseTag := fmt.Sprintf("%s%d", match[1], a)
-						hFields[baseTag] = hField
-					}
+				match := rangeTagReg.FindStringSubmatch(tag)
+				if len(match) != 4 {
+					hFields[tag] = fi
+					break
+				}
+				from, err := strconv.ParseUint(match[2], 10, 32)
+				if err != nil {
+					log.Fatal("A non-numeric character encountered")
+				}
+				to, err := strconv.ParseUint(match[3], 10, 32)
+				if err != nil {
+					log.Fatal("A non-numeric character encountered")
+				}
+				baseTag := match[1]
+				for a := from; a <= to; a++ {
+					tag = fmt.Sprintf("%s%d", baseTag, a)
+					hFields[tag] = fi
 				}
 			default:
-				hFields[csvTag] = hField
+				if tag == "-" {
+					tag = ""
+				} else {
+					hFields[tag] = fi
+				}
 			}
 		}
 	}
-	fMap := make(map[int]reflect.StructField)
+	fMap := make(map[int]fieldInfo)
 	for i, csvField := range csvFields {
 		if ftype, ok := hFields[csvField]; ok {
 			fMap[i] = ftype
@@ -51,7 +63,7 @@ func fieldToIndex(csvFields []string) map[int]reflect.StructField {
 }
 
 // CSVParse converts the CSV dump into a Hotel structure
-func CSVParse(file *os.File, hotels chan Hotel) {
+func CSVParse(file io.Reader, hotels chan Hotel) {
 	r := csv.NewReader(file)
 
 	fields, err := r.Read()
@@ -73,10 +85,10 @@ func CSVParse(file *os.File, hotels chan Hotel) {
 			log.Fatal(err)
 		}
 
-		for pos, fieldRef := range fMap {
-			field := reflect.ValueOf(&hotel).Elem().FieldByName(fieldRef.Name)
+		for pos, fieldinfo := range fMap {
+			field := reflect.ValueOf(&hotel).Elem().FieldByName(fieldinfo.name)
 			value := record[pos]
-			switch fieldRef.Type.Kind() {
+			switch fieldinfo.kind {
 			case reflect.String:
 				field.SetString(value)
 			case reflect.Float64:

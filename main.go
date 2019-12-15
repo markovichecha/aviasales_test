@@ -52,10 +52,10 @@ func storeData(dbs *storage.DBstorage, hotelChan chan parsers.Hotel, stop chan b
 }
 
 func init() {
-	flag.StringVar(&configFile, "config", "config.yml", "path to your .yml config")
+	flag.StringVar(&configFile, "config", "", "path to your .yml config")
 	flag.StringVar(&workingDir, "dir", "", "path to a dumps folder")
 	flag.StringVar(&configFile, "file", "", "path to your dump")
-	flag.StringVar(&configFile, "c", "config.yml", "path to your .yml config")
+	flag.StringVar(&configFile, "c", "", "path to your .yml config")
 	flag.StringVar(&workingDir, "d", "", "path to a dumps folder")
 	flag.StringVar(&configFile, "f", "", "path to your dump")
 }

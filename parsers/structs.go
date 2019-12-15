@@ -12,5 +12,5 @@ type Hotel struct {
 	Latitude    float64  `xml:"latitude" csv:"latitude" db:"latitude"`
 	StarRating  uint8    `xml:"stars" csv:"star_rating" db:"star_rating"`
 	Images      []string `xml:"photos>photo>url" csv:"photo{1,5}"`
-	Rating      float64  `csv:"rating_average" db:"rating"`
+	Rating      float64  `xml:"-" csv:"rating_average" db:"rating"`
 }
